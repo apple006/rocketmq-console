@@ -1,1 +1,3 @@
-#table($table)
+#foreach( $one in $tables)
+    #table($one)
+#end

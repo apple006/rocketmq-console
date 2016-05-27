@@ -2,6 +2,8 @@ package com.alibaba.rocketmq.action;
 
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -31,12 +33,17 @@ public abstract class AbstractAction {
     public static final String FORM_ACTION = "action";
 
     public static final String KEY_TABLE = "table";
+    public static final String KEY_TABLES = "tables";
 
     public static final String OPTIONS = "options";
 
 
     protected void putTable(ModelMap map, Table table) {
         map.put(KEY_TABLE, table);
+    }
+
+    protected void putTable(ModelMap map, Table[] tables) {
+        map.put(KEY_TABLES, tables);
     }
 
 

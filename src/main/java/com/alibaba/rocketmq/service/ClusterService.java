@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import com.alibaba.rocketmq.config.NServer;
+import io.netty.util.internal.ConcurrentSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,9 @@ public class ClusterService extends AbstractService {
     public Table list() throws Throwable {
         Throwable t = null;
         DefaultMQAdminExt defaultMQAdminExt = getDefaultMQAdminExt();
+
+        Set<String> addrs = NServer.getAddresses();
+        System.out.print(addrs);
         try {
             defaultMQAdminExt.start();
             Table table = doList(defaultMQAdminExt);
@@ -51,6 +56,34 @@ public class ClusterService extends AbstractService {
         throw t;
     }
 
+    //@CmdTrace(cmdClazz = ClusterListSubCommand.class)
+    public Set<Table> lists() throws Throwable {
+        Throwable t = null;
+        Set<String> addrs = NServer.getAddresses();
+        Set<DefaultMQAdminExt> exts = getDefaultMQAdminExts(addrs.size());
+
+        try {
+            startMQAdminExts(exts);
+            Set<Table> tables = doLists(exts);
+            return tables;
+        }
+        catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+            t = e;
+        }
+        finally {
+            shutdownDefaultMQAdminExts(exts);
+        }
+        throw t;
+    }
+
+    private Set<Table> doLists(Set<DefaultMQAdminExt> exts) throws Exception {
+        Set<Table> tables = new ConcurrentSet<Table>();
+        for (DefaultMQAdminExt one : exts){
+            tables.add(doList(one));
+        }
+        return tables;
+    }
 
     private Table doList(DefaultMQAdminExt defaultMQAdminExt) throws Exception {
 
@@ -69,14 +102,20 @@ public class ClusterService extends AbstractService {
         // "#Version", "#InTPS",
         // "#OutTPS", "#InTotalYest", "#OutTotalYest", "#InTotalToday",
         // "#OutTotalToday" };
-        String[] instanceThead =
-                new String[] { "#BID", "#Addr", "#Version", "#InTPS", "#OutTPS", "#InTotalYest",
-                              "#OutTotalYest", "#InTotalToday", "#OutTotalToday" };
-
         Set<Map.Entry<String, Set<String>>> clusterSet =
                 clusterInfoSerializeWrapper.getClusterAddrTable().entrySet();
 
         int clusterRow = clusterSet.size();
+        return doClusterList(clusterSet, clusterRow, clusterInfoSerializeWrapper, defaultMQAdminExt);
+    }
+
+    private Table doClusterList(Set<Map.Entry<String, Set<String>>> clusterSet, final int clusterRow,
+                                ClusterInfo clusterInfoSerializeWrapper, DefaultMQAdminExt defaultMQAdminExt){
+
+        String[] instanceThead =
+                new String[] { "#BID", "#Addr", "#Version", "#InTPS", "#OutTPS", "#InTotalYest",
+                        "#OutTotalYest", "#InTotalToday", "#OutTotalToday" };
+
         Table clusterTable = new Table(new String[] { "#Cluster Name", "#Broker Detail" }, clusterRow);
         Iterator<Map.Entry<String, Set<String>>> itCluster = clusterSet.iterator();
 

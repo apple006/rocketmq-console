@@ -1,5 +1,6 @@
 package com.alibaba.rocketmq.action;
 
+import javafx.scene.control.Tab;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -8,6 +9,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.alibaba.rocketmq.common.Table;
 import com.alibaba.rocketmq.service.ClusterService;
+
+import java.util.Iterator;
+import java.util.Set;
 
 
 /**
@@ -34,8 +38,27 @@ public class ClusterAction extends AbstractAction {
         return "Cluster";
     }
 
-
     @RequestMapping(value = "/list.do", method = RequestMethod.GET)
+    public String list(ModelMap map) {
+        putPublicAttribute(map, "list");
+        try {
+            Set<Table> tables = clusterService.lists();
+            Table[] tableShow = new Table[tables.size()];
+            Iterator<Table> iterator = tables.iterator();
+            int i = 0;
+            while (iterator.hasNext()){
+                Table table = iterator.next();
+                tableShow[i] = table;
+                i++;
+            }
+            putTable(map, tableShow);
+        }
+        catch (Throwable t) {
+            putAlertMsg(t, map);
+        }
+        return TEMPLATE;
+    }
+    /*@RequestMapping(value = "/list.do", method = RequestMethod.GET)
     public String list(ModelMap map) {
         putPublicAttribute(map, "list");
         try {
@@ -46,7 +69,7 @@ public class ClusterAction extends AbstractAction {
             putAlertMsg(t, map);
         }
         return TEMPLATE;
-    }
+    }*/
 
 
     @RequestMapping(value = "/demo.do", method = RequestMethod.GET)

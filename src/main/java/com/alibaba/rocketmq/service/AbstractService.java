@@ -1,12 +1,14 @@
 package com.alibaba.rocketmq.service;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.alibaba.rocketmq.client.exception.MQBrokerException;
 import com.alibaba.rocketmq.client.exception.MQClientException;
+import com.alibaba.rocketmq.common.Table;
 import com.alibaba.rocketmq.common.protocol.body.ClusterInfo;
 import com.alibaba.rocketmq.remoting.exception.RemotingConnectException;
 import com.alibaba.rocketmq.remoting.exception.RemotingSendRequestException;
@@ -38,11 +40,16 @@ public abstract class AbstractService {
         defaultMQAdminExt.shutdown();
     }
 
-    protected Set<DefaultMQAdminExt> getDefaultMQAdminExts(int nsrvCount) {
+    protected Set<DefaultMQAdminExt> getDefaultMQAdminExts(Set<String> addrs) {
         Set<DefaultMQAdminExt> result = new ConcurrentSet<DefaultMQAdminExt>();
-        for (int i = 0; i < nsrvCount; i++) {
+        Iterator<String> iterator = addrs.iterator();
+        int i = 0;
+        while (iterator.hasNext()){
+            String oneAddr = iterator.next();
             DefaultMQAdminExt defaultMQAdminExt = new DefaultMQAdminExt();
             defaultMQAdminExt.setInstanceName(Long.toString(System.currentTimeMillis()) + i);
+            i++;
+            defaultMQAdminExt.setNamesrvAddr(oneAddr);
             result.add(defaultMQAdminExt);
         }
         return result;

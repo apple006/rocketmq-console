@@ -38,9 +38,6 @@ public class ClusterService extends AbstractService {
     public Table list() throws Throwable {
         Throwable t = null;
         DefaultMQAdminExt defaultMQAdminExt = getDefaultMQAdminExt();
-
-        Set<String> addrs = NServer.getAddresses();
-        System.out.print(addrs);
         try {
             defaultMQAdminExt.start();
             Table table = doList(defaultMQAdminExt);
@@ -60,7 +57,7 @@ public class ClusterService extends AbstractService {
     public Set<Table> lists() throws Throwable {
         Throwable t = null;
         Set<String> addrs = NServer.getAddresses();
-        Set<DefaultMQAdminExt> exts = getDefaultMQAdminExts(addrs.size());
+        Set<DefaultMQAdminExt> exts = getDefaultMQAdminExts(addrs);
 
         try {
             startMQAdminExts(exts);
